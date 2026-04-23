@@ -8,13 +8,14 @@ interface Props {
   hidController?: Dualsense | null;
   requestDevice?: () => void;
   hidSupported?: boolean;
+  securityError?: boolean;
 }
 
 const getButtonProp = (buttons: readonly GamepadButton[], index: number) => {
   return buttons[index] || { pressed: false, touched: false, value: 0 };
 };
 
-export const ControllerVisualizer: React.FC<Props> = ({ gameState, hidController, requestDevice, hidSupported }) => {
+export const ControllerVisualizer: React.FC<Props> = ({ gameState, hidController, requestDevice, hidSupported, securityError }) => {
   const { buttons, axes } = gameState;
 
   // DualSense specific mapping (Standard Gamepad API)
@@ -233,10 +234,23 @@ export const ControllerVisualizer: React.FC<Props> = ({ gameState, hidController
       )}
 
       {/* Adaptive Triggers UI */}
-      <div className="mt-12 w-full max-w-3xl border border-[#3b4261] rounded-xl bg-[#16161e]/50 p-6 z-10 backdrop-blur-sm">
+      <div className="mt-12 w-full max-w-3xl border border-[#3b4261] rounded-xl bg-[#16161e]/50 p-6 z-10 backdrop-blur-sm relative overflow-hidden">
+        
+        {/* Security / Iframe Block Overlay */}
+        {securityError && (
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm z-20 flex flex-col items-center justify-center text-center p-6 border border-rose-500/30 rounded-xl">
+             <div className="text-rose-500 font-bold mb-2 uppercase tracking-widest text-sm flex items-center gap-2">
+                 <X size={16} /> Iframe Security Policy
+             </div>
+             <p className="text-slate-300 text-[11px] leading-relaxed max-w-md">
+                 WebHID is restricted within this preview iframe for your safety. To experience the adaptive haptic triggers, please open this app in a new tab using the "Open in New Tab" button in the top right.
+             </p>
+          </div>
+        )}
+
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-white font-bold tracking-widest uppercase text-sm">Adaptive Triggers</h3>
-          {hidSupported && !hidController && requestDevice && (
+          {hidSupported && !hidController && requestDevice && !securityError && (
             <button
                onClick={requestDevice}
                className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded font-bold text-[10px] tracking-widest uppercase shadow-[0_0_15px_rgba(79,70,229,0.4)] transition-all"

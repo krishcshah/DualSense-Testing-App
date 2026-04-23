@@ -5,6 +5,7 @@ export const useDualSenseWebHID = () => {
   const managerRef = useRef<DualsenseManager | null>(null);
   const [controller, setController] = useState<Dualsense | null>(null);
   const [supported, setSupported] = useState(true);
+  const [securityError, setSecurityError] = useState(false);
 
   useEffect(() => {
     if (!('hid' in navigator)) {
@@ -12,24 +13,45 @@ export const useDualSenseWebHID = () => {
       return;
     }
 
-    const manager = new DualsenseManager();
-    managerRef.current = manager;
-
+    let isSubscribed = true;
+    let manager: DualsenseManager | null = null;
+    
     const checkState = () => {
-      // Find first connected
+      if (!manager) return;
       const connected = Array.from(manager).find(c => c.active || c.connection.state) || manager.get(0);
       if (connected) {
         setController(connected);
       }
     };
 
-    // Since `dualsense-ts` input events fire, we can listen to "change"
-    manager.addEventListener('change', checkState);
-    checkState();
+    // Test getDevices purely to immediately catch strict synchronous permissions blocking
+    // We must do this BEFORE instantiating DualsenseManager, otherwise it will internally crash
+    navigator.hid.getDevices().then(() => {
+      if (!isSubscribed) return;
+      
+      try {
+        manager = new DualsenseManager();
+        managerRef.current = manager;
+        manager.on('change', checkState);
+        checkState();
+      } catch (err) {
+        console.error("WebHID constructor error:", err);
+        setSecurityError(true);
+      }
+    }).catch((e) => {
+      if (e.name === 'SecurityError' || (e.message && e.message.includes('getDevices'))) {
+        if (isSubscribed) setSecurityError(true);
+      } else {
+        console.error("HID Check Error:", e);
+      }
+    });
 
     return () => {
-      manager.removeEventListener('change', checkState);
-      manager.dispose();
+      isSubscribed = false;
+      if (manager) {
+        manager.off('change', checkState);
+        manager.dispose();
+      }
     };
   }, []);
 
@@ -48,5 +70,6 @@ export const useDualSenseWebHID = () => {
     controller,
     requestDevice,
     supported,
+    securityError,
   };
 };
