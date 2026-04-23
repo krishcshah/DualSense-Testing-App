@@ -4,11 +4,13 @@
  */
 import React from 'react';
 import { useGamepad } from './hooks/useGamepad';
+import { useDualSenseWebHID } from './hooks/useDualSenseWebHID';
 import { ControllerVisualizer } from './components/ControllerVisualizer';
-import { Gamepad2 } from 'lucide-react';
+import { Gamepad2, Usb } from 'lucide-react';
 
 export default function App() {
   const gameState = useGamepad();
+  const { controller: hidController, requestDevice, supported: hidSupported } = useDualSenseWebHID();
 
   return (
     <div className="min-h-screen bg-[#05060a] text-slate-100 font-sans selection:bg-blue-900 selection:text-white flex flex-col items-center py-12 px-4 selection:bg-blue-500/30 leading-relaxed">
@@ -40,7 +42,12 @@ export default function App() {
               </div>
             </div>
             
-            <ControllerVisualizer gameState={gameState} />
+            <ControllerVisualizer 
+              gameState={gameState} 
+              hidController={hidController} 
+              requestDevice={requestDevice} 
+              hidSupported={hidSupported} 
+            />
             
             {/* Debug Text Area */}
             <div className="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-4 px-4 mb-12">

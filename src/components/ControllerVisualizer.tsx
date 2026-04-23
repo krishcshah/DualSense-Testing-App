@@ -1,16 +1,20 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { GamepadState } from '../hooks/useGamepad';
-import { Triangle, Circle, Square, X, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Menu, Share2 } from 'lucide-react';
+import { Dualsense, TriggerEffect } from 'dualsense-ts';
+import { Triangle, Circle, Square, X, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Menu, Share2, Unlock } from 'lucide-react';
 
 interface Props {
   gameState: GamepadState;
+  hidController?: Dualsense | null;
+  requestDevice?: () => void;
+  hidSupported?: boolean;
 }
 
 const getButtonProp = (buttons: readonly GamepadButton[], index: number) => {
   return buttons[index] || { pressed: false, touched: false, value: 0 };
 };
 
-export const ControllerVisualizer: React.FC<Props> = ({ gameState }) => {
+export const ControllerVisualizer: React.FC<Props> = ({ gameState, hidController, requestDevice, hidSupported }) => {
   const { buttons, axes } = gameState;
 
   // DualSense specific mapping (Standard Gamepad API)
@@ -227,6 +231,90 @@ export const ControllerVisualizer: React.FC<Props> = ({ gameState }) => {
           Test Vibration Engine
         </button>
       )}
+
+      {/* Adaptive Triggers UI */}
+      <div className="mt-12 w-full max-w-3xl border border-[#3b4261] rounded-xl bg-[#16161e]/50 p-6 z-10 backdrop-blur-sm">
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-white font-bold tracking-widest uppercase text-sm">Adaptive Triggers</h3>
+          {hidSupported && !hidController && requestDevice && (
+            <button
+               onClick={requestDevice}
+               className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded font-bold text-[10px] tracking-widest uppercase shadow-[0_0_15px_rgba(79,70,229,0.4)] transition-all"
+            >
+              <Unlock size={14} /> Unlock WebHID
+            </button>
+          )}
+          {hidController && (
+            <div className="text-emerald-400 text-[10px] font-bold uppercase tracking-widest flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              WebHID Active
+            </div>
+          )}
+          {!hidSupported && (
+            <div className="text-rose-400 text-[10px] font-bold uppercase tracking-widest">
+              WebHID Unsupported
+            </div>
+          )}
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+           {['left', 'right'].map((side) => (
+             <div key={side} className="flex flex-col gap-2">
+                <div className="text-slate-400 text-[10px] uppercase tracking-widest font-bold mb-2">{side.toUpperCase()} Trigger Force Config</div>
+                <div className="grid grid-cols-2 gap-2">
+                  <TriggerButton side={side} mode="off" hidController={hidController} />
+                  <TriggerButton side={side} mode="feedback" hidController={hidController} />
+                  <TriggerButton side={side} mode="weapon" hidController={hidController} />
+                  <TriggerButton side={side} mode="bow" hidController={hidController} />
+                  <TriggerButton side={side} mode="vibration" hidController={hidController} />
+                  <TriggerButton side={side} mode="machine" hidController={hidController} />
+                </div>
+             </div>
+           ))}
+        </div>
+      </div>
     </div>
+  );
+};
+
+// Internal component for trigger buttons
+const TriggerButton = ({ side, mode, hidController }: { side: string, mode: string, hidController: Dualsense | null | undefined }) => {
+  const setTriggerEffect = () => {
+    if (!hidController) return;
+    
+    let config: any = { effect: TriggerEffect.Off };
+    switch (mode) {
+      case 'weapon':
+        config = { effect: TriggerEffect.Weapon, start: 0.1, end: 0.6, strength: 1.0 };
+        break;
+      case 'bow':
+        config = { effect: TriggerEffect.Bow, start: 0.0, end: 1.0, strength: 0.8, snapForce: 1.0 };
+        break;
+      case 'vibration':
+         config = { effect: TriggerEffect.Vibration, position: 0.3, amplitude: 0.8, frequency: 20 };
+         break;
+      case 'feedback':
+         config = { effect: TriggerEffect.Feedback, position: 0.0, strength: 1.0 };
+         break;
+      case 'machine':
+         config = { effect: TriggerEffect.Machine, start: 0.1, end: 0.9, amplitudeA: 1.0, amplitudeB: 0.0, frequency: 15, period: 10 };
+         break;
+    }
+
+    if (side === 'left') {
+      hidController.left.trigger.feedback.set(config);
+    } else {
+      hidController.right.trigger.feedback.set(config);
+    }
+  };
+
+  return (
+    <button 
+      onClick={setTriggerEffect} 
+      disabled={!hidController} 
+      className="p-2 border border-[#3b4261] rounded bg-[#0a0a0f] hover:bg-[#3b4261] disabled:opacity-40 disabled:cursor-not-allowed text-[11px] font-mono text-slate-300 uppercase tracking-widest transition-colors active:bg-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+    >
+      {mode}
+    </button>
   );
 };
