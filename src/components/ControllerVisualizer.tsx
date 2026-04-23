@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { GamepadState } from '../hooks/useGamepad';
 import { Dualsense, TriggerEffect } from 'dualsense-ts';
 import { Triangle, Circle, Square, X, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Menu, Share2, Unlock } from 'lucide-react';
@@ -133,8 +133,11 @@ export const ControllerVisualizer: React.FC<Props> = ({ gameState, hidController
             </div>
             
             {/* Touchpad */}
-            <div className={`w-56 h-36 rounded-xl flex items-center justify-center transition-all duration-75 ${isActive(touchpad)}`}>
-              <div className={`text-[10px] tracking-widest font-bold uppercase transition-opacity ${touchpad.pressed ? "opacity-100 text-blue-100" : "opacity-40 text-slate-500"}`}>Touchpad Click</div>
+            <div className={`relative w-56 h-36 rounded-xl flex items-center justify-center transition-all duration-75 overflow-hidden border ${touchpad.pressed ? "border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.3)] bg-blue-500/10 text-white" : "bg-[#16161e] border-[#3b4261] shadow-inner text-slate-400"}`}>
+              <TouchpadSurface hidController={hidController} />
+              <div className={`absolute z-20 pointer-events-none text-[10px] tracking-widest font-bold uppercase transition-opacity ${touchpad.pressed ? "opacity-100 text-blue-100 drop-shadow-md" : "opacity-40 text-slate-500"}`}>
+                {touchpad.pressed ? "CLICKED" : "TOUCHPAD"}
+              </div>
             </div>
 
             {/* Options */}
@@ -344,5 +347,81 @@ const TriggerButton = ({ side, mode, activeMode, setActiveMode, hidController }:
     >
       {mode}
     </button>
+  );
+};
+
+const TouchpadSurface = ({ hidController }: { hidController?: Dualsense | null }) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const touchHistory = useRef({
+    left: { x: 0, y: 0, active: false },
+    right: { x: 0, y: 0, active: false }
+  });
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let rafId: number;
+
+    const render = () => {
+      // Fade out effect to create trailing lines
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.globalCompositeOperation = 'source-over';
+
+      if (hidController) {
+         const drawTouch = (touchObj: any, lastObj: { x: number; y: number; active: boolean }, color: string) => {
+             const active = touchObj.contact.state;
+             if (active) {
+                // Map analog coordinates [-1, 1] to canvas dimensions [0, width/height]
+                const x = (touchObj.x.state + 1) / 2 * canvas.width;
+                const y = (touchObj.y.state + 1) / 2 * canvas.height;
+                
+                if (lastObj.active) {
+                    ctx.beginPath();
+                    ctx.moveTo(lastObj.x, lastObj.y);
+                    ctx.lineTo(x, y);
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 4;
+                    ctx.lineCap = 'round';
+                    ctx.stroke();
+                }
+
+                // Draw current touch point head
+                ctx.beginPath();
+                ctx.arc(x, y, 4, 0, Math.PI * 2);
+                ctx.fillStyle = '#ffffff';
+                ctx.fill();
+
+                lastObj.x = x;
+                lastObj.y = y;
+                lastObj.active = true;
+             } else {
+                lastObj.active = false;
+             }
+         };
+
+         // DualSense multi-touch pointers
+         drawTouch(hidController.touchpad.left, touchHistory.current.left, '#bb9af7');
+         drawTouch(hidController.touchpad.right, touchHistory.current.right, '#7dcfff');
+      }
+
+      rafId = requestAnimationFrame(render);
+    };
+    
+    rafId = requestAnimationFrame(render);
+    return () => cancelAnimationFrame(rafId);
+  }, [hidController]);
+
+  return (
+    <canvas 
+      ref={canvasRef} 
+      width={224} 
+      height={144} 
+      className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10 opacity-80" 
+    />
   );
 };
