@@ -1,0 +1,6 @@
+{
+  "name": "DualSense Tester",
+  "description": "A web application to test PlayStation DualSense controller buttons, analog sticks, triggers, and haptic feedback functionality.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
