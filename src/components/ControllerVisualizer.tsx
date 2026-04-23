@@ -17,31 +17,33 @@ const getButtonProp = (buttons: readonly GamepadButton[], index: number) => {
 
 export const ControllerVisualizer: React.FC<Props> = ({ gameState, hidController, requestDevice, hidSupported, securityError }) => {
   const { buttons, axes } = gameState;
+  const [leftTriggerMode, setLeftTriggerMode] = useState<string>('off');
+  const [rightTriggerMode, setRightTriggerMode] = useState<string>('off');
 
-  // DualSense specific mapping (Standard Gamepad API)
-  const cross = getButtonProp(buttons, 0);
-  const circle = getButtonProp(buttons, 1);
-  const square = getButtonProp(buttons, 2);
-  const triangle = getButtonProp(buttons, 3);
-  const l1 = getButtonProp(buttons, 4);
-  const r1 = getButtonProp(buttons, 5);
-  const l2 = getButtonProp(buttons, 6);
-  const r2 = getButtonProp(buttons, 7);
-  const share = getButtonProp(buttons, 8);
-  const options = getButtonProp(buttons, 9);
-  const l3 = getButtonProp(buttons, 10);
-  const r3 = getButtonProp(buttons, 11);
-  const dup = getButtonProp(buttons, 12);
-  const ddown = getButtonProp(buttons, 13);
-  const dleft = getButtonProp(buttons, 14);
-  const dright = getButtonProp(buttons, 15);
-  const ps = getButtonProp(buttons, 16);
-  const touchpad = getButtonProp(buttons, 17);
+  // DualSense specific mapping (Standard Gamepad API vs WebHID)
+  const cross = hidController ? { pressed: hidController.cross.state, touched: false, value: hidController.cross.state ? 1 : 0 } : getButtonProp(buttons, 0);
+  const circle = hidController ? { pressed: hidController.circle.state, touched: false, value: hidController.circle.state ? 1 : 0 } : getButtonProp(buttons, 1);
+  const square = hidController ? { pressed: hidController.square.state, touched: false, value: hidController.square.state ? 1 : 0 } : getButtonProp(buttons, 2);
+  const triangle = hidController ? { pressed: hidController.triangle.state, touched: false, value: hidController.triangle.state ? 1 : 0 } : getButtonProp(buttons, 3);
+  const l1 = hidController ? { pressed: hidController.left.bumper.state, touched: false, value: hidController.left.bumper.state ? 1 : 0 } : getButtonProp(buttons, 4);
+  const r1 = hidController ? { pressed: hidController.right.bumper.state, touched: false, value: hidController.right.bumper.state ? 1 : 0 } : getButtonProp(buttons, 5);
+  const l2 = hidController ? { pressed: hidController.left.trigger.state > 0.05, touched: false, value: hidController.left.trigger.state } : getButtonProp(buttons, 6);
+  const r2 = hidController ? { pressed: hidController.right.trigger.state > 0.05, touched: false, value: hidController.right.trigger.state } : getButtonProp(buttons, 7);
+  const share = hidController ? { pressed: hidController.create.state, touched: false, value: hidController.create.state ? 1 : 0 } : getButtonProp(buttons, 8);
+  const options = hidController ? { pressed: hidController.options.state, touched: false, value: hidController.options.state ? 1 : 0 } : getButtonProp(buttons, 9);
+  const l3 = hidController ? { pressed: hidController.left.analog.button.state, touched: false, value: hidController.left.analog.button.state ? 1 : 0 } : getButtonProp(buttons, 10);
+  const r3 = hidController ? { pressed: hidController.right.analog.button.state, touched: false, value: hidController.right.analog.button.state ? 1 : 0 } : getButtonProp(buttons, 11);
+  const dup = hidController ? { pressed: hidController.dpad.up.state, touched: false, value: hidController.dpad.up.state ? 1 : 0 } : getButtonProp(buttons, 12);
+  const ddown = hidController ? { pressed: hidController.dpad.down.state, touched: false, value: hidController.dpad.down.state ? 1 : 0 } : getButtonProp(buttons, 13);
+  const dleft = hidController ? { pressed: hidController.dpad.left.state, touched: false, value: hidController.dpad.left.state ? 1 : 0 } : getButtonProp(buttons, 14);
+  const dright = hidController ? { pressed: hidController.dpad.right.state, touched: false, value: hidController.dpad.right.state ? 1 : 0 } : getButtonProp(buttons, 15);
+  const ps = hidController ? { pressed: hidController.ps.state, touched: false, value: hidController.ps.state ? 1 : 0 } : getButtonProp(buttons, 16);
+  const touchpad = hidController ? { pressed: hidController.touchpad.button.state, touched: false, value: hidController.touchpad.button.state ? 1 : 0 } : getButtonProp(buttons, 17);
 
-  const leftStickX = axes[0] || 0;
-  const leftStickY = axes[1] || 0;
-  const rightStickX = axes[2] || 0;
-  const rightStickY = axes[3] || 0;
+  const leftStickX = hidController ? hidController.left.analog.x.state : (axes[0] || 0);
+  const leftStickY = hidController ? hidController.left.analog.y.state : (axes[1] || 0);
+  const rightStickX = hidController ? hidController.right.analog.x.state : (axes[2] || 0);
+  const rightStickY = hidController ? hidController.right.analog.y.state : (axes[3] || 0);
 
   const triggerRumble = () => {
     if (gameState.gamepad && gameState.gamepad.vibrationActuator) {
@@ -272,19 +274,24 @@ export const ControllerVisualizer: React.FC<Props> = ({ gameState, hidController
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-           {['left', 'right'].map((side) => (
-             <div key={side} className="flex flex-col gap-2">
-                <div className="text-slate-400 text-[10px] uppercase tracking-widest font-bold mb-2">{side.toUpperCase()} Trigger Force Config</div>
-                <div className="grid grid-cols-2 gap-2">
-                  <TriggerButton side={side} mode="off" hidController={hidController} />
-                  <TriggerButton side={side} mode="feedback" hidController={hidController} />
-                  <TriggerButton side={side} mode="weapon" hidController={hidController} />
-                  <TriggerButton side={side} mode="bow" hidController={hidController} />
-                  <TriggerButton side={side} mode="vibration" hidController={hidController} />
-                  <TriggerButton side={side} mode="machine" hidController={hidController} />
-                </div>
-             </div>
-           ))}
+           {['left', 'right'].map((side) => {
+             const activeMode = side === 'left' ? leftTriggerMode : rightTriggerMode;
+             const setActiveMode = side === 'left' ? setLeftTriggerMode : setRightTriggerMode;
+             
+             return (
+               <div key={side} className="flex flex-col gap-2">
+                  <div className="text-slate-400 text-[10px] uppercase tracking-widest font-bold mb-2">{side.toUpperCase()} Trigger Force Config</div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <TriggerButton side={side} mode="off" activeMode={activeMode} setActiveMode={setActiveMode} hidController={hidController} />
+                    <TriggerButton side={side} mode="feedback" activeMode={activeMode} setActiveMode={setActiveMode} hidController={hidController} />
+                    <TriggerButton side={side} mode="weapon" activeMode={activeMode} setActiveMode={setActiveMode} hidController={hidController} />
+                    <TriggerButton side={side} mode="bow" activeMode={activeMode} setActiveMode={setActiveMode} hidController={hidController} />
+                    <TriggerButton side={side} mode="vibration" activeMode={activeMode} setActiveMode={setActiveMode} hidController={hidController} />
+                    <TriggerButton side={side} mode="machine" activeMode={activeMode} setActiveMode={setActiveMode} hidController={hidController} />
+                  </div>
+               </div>
+             );
+           })}
         </div>
       </div>
     </div>
@@ -292,7 +299,7 @@ export const ControllerVisualizer: React.FC<Props> = ({ gameState, hidController
 };
 
 // Internal component for trigger buttons
-const TriggerButton = ({ side, mode, hidController }: { side: string, mode: string, hidController: Dualsense | null | undefined }) => {
+const TriggerButton = ({ side, mode, activeMode, setActiveMode, hidController }: { side: string, mode: string, activeMode: string, setActiveMode: (m: string) => void, hidController: Dualsense | null | undefined }) => {
   const setTriggerEffect = () => {
     if (!hidController) return;
     
@@ -320,13 +327,20 @@ const TriggerButton = ({ side, mode, hidController }: { side: string, mode: stri
     } else {
       hidController.right.trigger.feedback.set(config);
     }
+    setActiveMode(mode);
   };
+
+  const isActive = activeMode === mode;
 
   return (
     <button 
       onClick={setTriggerEffect} 
       disabled={!hidController} 
-      className="p-2 border border-[#3b4261] rounded bg-[#0a0a0f] hover:bg-[#3b4261] disabled:opacity-40 disabled:cursor-not-allowed text-[11px] font-mono text-slate-300 uppercase tracking-widest transition-colors active:bg-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+      className={`p-2 border rounded disabled:opacity-40 disabled:cursor-not-allowed text-[11px] font-mono uppercase tracking-widest transition-colors focus:outline-none focus:ring-1 focus:ring-indigo-500
+      ${isActive 
+        ? 'bg-indigo-600 border-indigo-400 text-white shadow-[0_0_15px_rgba(79,70,229,0.3)]' 
+        : 'bg-[#0a0a0f] border-[#3b4261] hover:bg-[#3b4261] text-slate-300 active:bg-indigo-600'
+      }`}
     >
       {mode}
     </button>

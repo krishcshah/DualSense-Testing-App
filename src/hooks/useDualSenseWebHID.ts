@@ -6,6 +6,7 @@ export const useDualSenseWebHID = () => {
   const [controller, setController] = useState<Dualsense | null>(null);
   const [supported, setSupported] = useState(true);
   const [securityError, setSecurityError] = useState(false);
+  const [tick, setTick] = useState(0);
 
   useEffect(() => {
     if (!('hid' in navigator)) {
@@ -21,6 +22,7 @@ export const useDualSenseWebHID = () => {
       const connected = Array.from(manager).find(c => c.active || c.connection.state) || manager.get(0);
       if (connected) {
         setController(connected);
+        setTick(t => t + 1);
       }
     };
 
