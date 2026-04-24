@@ -13,26 +13,26 @@ export default function App() {
   const { controller: hidController, requestDevice, supported: hidSupported, securityError } = useDualSenseWebHID();
 
   return (
-    <div className="min-h-screen bg-[#05060a] text-slate-100 font-sans selection:bg-blue-900 selection:text-white flex flex-col items-center py-12 px-4 selection:bg-blue-500/30 leading-relaxed">
+    <div className="h-screen w-screen overflow-hidden bg-[#05060a] text-slate-100 font-sans selection:bg-blue-900 selection:text-white flex flex-col items-center pt-8 pb-4 px-4 leading-relaxed">
       
       {/* Header */}
-      <header className="flex flex-col items-center justify-center mb-10 border-b border-white/10 pb-6 w-full max-w-5xl">
-        <div className="flex items-center justify-center gap-3 mb-2">
-          <Gamepad2 size={40} className="text-blue-500" />
-          <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent uppercase">
+      <header className="flex flex-col items-center justify-center mb-6 w-full max-w-5xl shrink-0">
+        <div className="flex items-center justify-center gap-3 mb-1">
+          <Gamepad2 size={32} className="text-blue-500" />
+          <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent uppercase">
             DualSense Tester
           </h1>
         </div>
-        <p className="text-[11px] text-slate-400 mt-1 uppercase tracking-widest font-semibold max-w-lg mx-auto text-center">
-          Connect your PlayStation DualSense or compatible controller via USB or Bluetooth. Tests buttons, analog sticks, triggers, and haptics (on supported browsers).
+        <p className="text-[10px] text-slate-400 mt-1 uppercase tracking-widest font-semibold max-w-lg mx-auto text-center hidden md:block">
+          Connect your PlayStation DualSense via USB or Bluetooth.
         </p>
       </header>
 
       {/* Main Content */}
-      <main className="w-full max-w-5xl relative flex-1">
+      <main className="w-full max-w-[1240px] relative flex-1 flex flex-col min-h-0">
         {gameState.connected ? (
-          <div>
-            <div className="flex justify-between items-center mb-4 px-4 text-[10px] font-mono text-slate-500 uppercase tracking-wider">
+          <div className="flex flex-col h-full">
+            <div className="flex justify-between items-center mb-3 px-4 text-[10px] font-mono text-slate-500 uppercase tracking-wider shrink-0">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                 <span className="text-slate-300 tracking-normal normal-case">{gameState.id}</span>
@@ -42,27 +42,15 @@ export default function App() {
               </div>
             </div>
             
-            <ControllerVisualizer 
-              gameState={gameState} 
-              hidController={hidController} 
-              requestDevice={requestDevice} 
-              hidSupported={hidSupported} 
-              securityError={securityError}
-            />
-            
-            {/* Debug Text Area */}
-            <div className="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-4 px-4 mb-12">
-              <div className="col-span-full">
-                <h3 className="text-[11px] uppercase tracking-widest text-slate-500 mb-2">Raw Data Stream</h3>
-              </div>
-              {gameState.buttons.map((btn, i) => (
-                <div key={i} className={`p-3 rounded-lg border font-mono text-[10px] flex justify-between items-center ${btn.pressed ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400' : 'bg-white/5 border-white/10 text-white/50'}`}>
-                  <span className="uppercase tracking-widest">BTN {i}</span>
-                  <span className="font-bold text-xs">{btn.value > 0 ? btn.value.toFixed(2) : (btn.pressed ? '1.00' : '0.00')}</span>
-                </div>
-              ))}
+            <div className="flex-1 min-h-0 relative">
+              <ControllerVisualizer 
+                gameState={gameState} 
+                hidController={hidController} 
+                requestDevice={requestDevice} 
+                hidSupported={hidSupported} 
+                securityError={securityError}
+              />
             </div>
-            
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-24 px-8 bg-white/5 border border-white/10 rounded-xl max-w-3xl mx-auto text-center relative overflow-hidden backdrop-blur-sm">

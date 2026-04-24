@@ -62,11 +62,14 @@ export const ControllerVisualizer: React.FC<Props> = ({ gameState, hidController
   const dpadBtnClasses = "border flex items-center justify-center transition-all duration-75";
 
   return (
-    <div className="flex flex-col items-center justify-center p-8 bg-white/5 rounded-xl border border-white/10 max-w-4xl w-full mx-auto relative overflow-hidden backdrop-blur-sm shadow-2xl">
-      <div className="absolute w-[800px] h-[800px] bg-blue-600/5 rounded-full blur-[120px] -z-10"></div>
+    <div className="flex flex-row items-stretch justify-center gap-6 w-full h-full max-w-[1240px] mx-auto relative z-10 pb-4">
       
-      {/* --- Triggers and Bumpers --- */}
-      <div className="flex justify-between w-full max-w-3xl mb-8 px-12 z-10">
+      {/* LEFT PANEL: Physical Controller Visualization */}
+      <div className="flex-[3] flex flex-col items-center justify-center p-6 lg:p-8 bg-white/5 rounded-2xl border border-white/10 relative overflow-hidden backdrop-blur-sm shadow-2xl h-full">
+        <div className="absolute w-[800px] h-[800px] bg-blue-600/5 rounded-full blur-[120px] -z-10"></div>
+        
+        {/* --- Triggers and Bumpers --- */}
+        <div className="flex justify-between w-full max-w-2xl mb-6 px-8 lg:px-12 z-10">
         <div className="flex flex-col items-center gap-2">
           {/* L2 Analogue Trigger */}
           <div className="w-16 h-20 bg-[#16161e] rounded-t-xl overflow-hidden border border-[#3b4261] relative flex flex-col justify-end shadow-inner">
@@ -104,11 +107,11 @@ export const ControllerVisualizer: React.FC<Props> = ({ gameState, hidController
         </div>
       </div>
 
-      {/* --- Main Controller Body --- */}
-      <div className="relative w-full max-w-3xl flex justify-between items-center mt-4 z-10">
+        {/* --- Main Controller Body --- */}
+        <div className="relative w-full max-w-2xl flex justify-between items-center mt-4 z-10">
         
         {/* Left Side: D-Pad */}
-        <div className="w-48 h-48 relative flex items-center justify-center ml-4">
+        <div className="w-40 h-40 scale-[0.85] origin-center relative flex items-center justify-center ml-4">
           <div className={`absolute top-0 w-12 h-14 rounded-t-lg pt-2 ${dpadBtnClasses} ${isActive(dup)}`}>
             <ArrowUp size={24} />
           </div>
@@ -125,7 +128,7 @@ export const ControllerVisualizer: React.FC<Props> = ({ gameState, hidController
         </div>
 
         {/* Center: Touchpad, Share, Options, PS */}
-        <div className="flex flex-col items-center flex-1 mx-4 gap-8">
+        <div className="flex flex-col items-center flex-1 mx-4 gap-6 scale-[0.9] origin-center">
           <div className="flex items-start justify-center gap-4 w-full">
             {/* Share */}
             <div className={`w-6 h-10 mt-2 rounded-full flex items-center justify-center transition-all duration-75 ${isActive(share)}`}>
@@ -157,7 +160,7 @@ export const ControllerVisualizer: React.FC<Props> = ({ gameState, hidController
         </div>
 
         {/* Right Side: Action Buttons */}
-        <div className="w-48 h-48 relative flex items-center justify-center mr-4">
+        <div className="w-40 h-40 scale-[0.85] origin-center relative flex items-center justify-center mr-4">
           <div className={`absolute top-0 w-14 h-14 rounded-full flex items-center justify-center transition-all duration-75 border ${isActive(triangle)}`}>
              <Triangle size={24} className={triangle.pressed ? "text-white" : "text-[#bb9af7]"} strokeWidth={3} />
           </div>
@@ -175,9 +178,9 @@ export const ControllerVisualizer: React.FC<Props> = ({ gameState, hidController
       </div>
 
       {/* --- Thumbsticks --- */}
-      <div className="flex justify-center w-full gap-24 mt-4 z-10">
+      <div className="flex justify-center w-full gap-16 mt-4 z-10 scale-[0.85] origin-top">
         {/* Left Stick */}
-        <div className="flex flex-col items-center gap-4">
+        <div className="flex flex-col items-center gap-2">
           <div className={`w-36 h-36 rounded-full border-[3px] flex items-center justify-center relative transition-colors duration-75 bg-[#05060a]/50 backdrop-blur ${l3.pressed ? 'border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.3)]' : 'border-[#414868]'}`}>
              <div className="absolute inset-0 rounded-full border border-[#16161e] pointer-events-none"></div>
              {/* Crosshairs */}
@@ -202,7 +205,7 @@ export const ControllerVisualizer: React.FC<Props> = ({ gameState, hidController
         </div>
 
         {/* Right Stick */}
-        <div className="flex flex-col items-center gap-4">
+        <div className="flex flex-col items-center gap-2">
           <div className={`w-36 h-36 rounded-full border-[3px] flex items-center justify-center relative transition-colors duration-75 bg-[#05060a]/50 backdrop-blur ${r3.pressed ? 'border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.3)]' : 'border-[#414868]'}`}>
              <div className="absolute inset-0 rounded-full border border-[#16161e] pointer-events-none"></div>
              {/* Crosshairs */}
@@ -227,23 +230,18 @@ export const ControllerVisualizer: React.FC<Props> = ({ gameState, hidController
         </div>
       </div>
 
-      {/* Rumble Test Button */}
-      {/* @ts-ignore - experimental API */}
-      {gameState.gamepad?.vibrationActuator && (
-        <button 
-          onClick={triggerRumble}
-          className="mt-8 px-8 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs uppercase font-bold tracking-widest transition-all z-10 shadow-[0_0_20px_rgba(37,99,235,0.4)]"
-        >
-          Test Vibration Engine
-        </button>
-      )}
+      </div>
+      {/* END LEFT PANEL */}
 
-      {/* Adaptive Triggers UI */}
-      <div className="mt-12 w-full max-w-3xl border border-[#3b4261] rounded-xl bg-[#16161e]/50 p-6 z-10 backdrop-blur-sm relative overflow-hidden">
+      {/* RIGHT PANEL: Settings & Adaptive Triggers */}
+      <div className="flex-[1.2] min-w-[320px] max-w-[380px] flex flex-col gap-4 h-full">
         
-        {/* Security / Iframe Block Overlay */}
-        {securityError && (
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm z-20 flex flex-col items-center justify-center text-center p-6 border border-rose-500/30 rounded-xl">
+        {/* Adaptive Triggers UI */}
+        <div className="flex-1 w-full border border-[#3b4261] rounded-2xl bg-[#16161e]/80 p-6 z-10 backdrop-blur-md relative overflow-hidden flex flex-col">
+          
+          {/* Security / Iframe Block Overlay */}
+          {securityError && (
+            <div className="absolute inset-0 bg-black/80 backdrop-blur-sm z-20 flex flex-col items-center justify-center text-center p-6 border border-rose-500/30 rounded-xl">
              <div className="text-rose-500 font-bold mb-2 uppercase tracking-widest text-sm flex items-center gap-2">
                  <X size={16} /> Iframe Security Policy
              </div>
@@ -258,32 +256,32 @@ export const ControllerVisualizer: React.FC<Props> = ({ gameState, hidController
           {hidSupported && !hidController && requestDevice && !securityError && (
             <button
                onClick={requestDevice}
-               className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded font-bold text-[10px] tracking-widest uppercase shadow-[0_0_15px_rgba(79,70,229,0.4)] transition-all"
+               className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded font-bold text-[9px] tracking-widest uppercase shadow-[0_0_15px_rgba(79,70,229,0.4)] transition-all"
             >
-              <Unlock size={14} /> Unlock WebHID
+              <Unlock size={12} /> Unlock
             </button>
           )}
           {hidController && (
-            <div className="text-emerald-400 text-[10px] font-bold uppercase tracking-widest flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              WebHID Active
+            <div className="text-emerald-400 text-[9px] font-bold uppercase tracking-widest flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              WebHID
             </div>
           )}
           {!hidSupported && (
-            <div className="text-rose-400 text-[10px] font-bold uppercase tracking-widest">
-              WebHID Unsupported
+            <div className="text-rose-400 text-[9px] font-bold uppercase tracking-widest">
+              Unsupported
             </div>
           )}
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="flex flex-col gap-6 flex-1">
            {['left', 'right'].map((side) => {
              const activeMode = side === 'left' ? leftTriggerMode : rightTriggerMode;
              const setActiveMode = side === 'left' ? setLeftTriggerMode : setRightTriggerMode;
              
              return (
                <div key={side} className="flex flex-col gap-2">
-                  <div className="text-slate-400 text-[10px] uppercase tracking-widest font-bold mb-2">{side.toUpperCase()} Trigger Force Config</div>
+                  <div className="text-slate-400 text-[10px] uppercase tracking-widest font-bold mb-2 pb-1 border-b border-[#3b4261]">{side.toUpperCase()} Trigger</div>
                   <div className="grid grid-cols-2 gap-2">
                     <TriggerButton side={side} mode="off" activeMode={activeMode} setActiveMode={setActiveMode} hidController={hidController} />
                     <TriggerButton side={side} mode="feedback" activeMode={activeMode} setActiveMode={setActiveMode} hidController={hidController} />
@@ -297,7 +295,21 @@ export const ControllerVisualizer: React.FC<Props> = ({ gameState, hidController
            })}
         </div>
       </div>
+
+      {/* Rumble Test Button - Appended to right column */}
+      {/* @ts-ignore - experimental API */}
+      {gameState.gamepad?.vibrationActuator && (
+        <button 
+          onClick={triggerRumble}
+          className="w-full py-4 bg-white/5 border border-white/10 hover:bg-blue-600/20 hover:border-blue-500/50 text-slate-300 hover:text-white rounded-xl text-xs uppercase font-bold tracking-widest transition-all z-10 shadow-[0_0_20px_rgba(0,0,0,0.2)] flex items-center justify-center gap-2"
+        >
+          <svg className="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+          Test Vibration
+        </button>
+      )}
+
     </div>
+  </div>
   );
 };
 
